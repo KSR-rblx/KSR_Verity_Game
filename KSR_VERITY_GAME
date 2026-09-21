@@ -775,7 +775,7 @@ local function makeDropdown(parent,label,getOptions,onSelect)
     btn.Size=UDim2.new(1,-70,0,22)
     btn.Position=UDim2.new(0,62,0.5,-11)
     btn.BackgroundColor3=BG_BTN
-    btn.Text="▾  None"
+    btn.Text="↓  None"
     btn.TextColor3=TXT
     btn.Font=Enum.Font.GothamMedium
     btn.TextSize=11
