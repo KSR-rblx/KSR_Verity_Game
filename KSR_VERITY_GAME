@@ -1,0 +1,2139 @@
+local Players=game:GetService("Players")
+local RunService=game:GetService("RunService")
+local UserInputService=game:GetService("UserInputService")
+local Lighting=game:GetService("Lighting")
+local TeleportService=game:GetService("TeleportService")
+local VirtualUser=game:GetService("VirtualUser")
+local HttpService=game:GetService("HttpService")
+local TextChatService=game:GetService("TextChatService")
+local TweenService=game:GetService("TweenService")
+
+local LocalPlayer=Players.LocalPlayer
+
+local ACCENT=Color3.fromRGB(255,130,0)
+local ACCENT_DIM=Color3.fromRGB(170,85,0)
+local ACCENT_HOV=Color3.fromRGB(255,155,40)
+local BG_MAIN=Color3.fromRGB(12,12,12)
+local BG_PANEL=Color3.fromRGB(18,18,18)
+local BG_ROW=Color3.fromRGB(26,26,26)
+local BG_ROW_HOV=Color3.fromRGB(34,34,34)
+local BG_BTN=Color3.fromRGB(40,40,40)
+local TXT=Color3.fromRGB(235,235,235)
+local TXT_DIM=Color3.fromRGB(150,150,150)
+
+local Config={
+    WalkSpeed=16,
+    JumpPower=50,
+    InfJump=false,
+    Noclip=false,
+    Fullbright=false,
+    NoCooldown=false,
+    TPAllStages=false,
+    StartStage=1,
+    EndStage=41,
+    Delay=0.20,
+    LoopMode=false,
+    RestartTP=true,
+    RestartWait=10,
+    AutoClick=false,
+    AutoClickCPS=10,
+    Freeze=false,
+    AntiFling=false,
+    ESP=false,
+    Chams=false,
+    Tracers=false,
+    FOVEnabled=false,
+    FOV=70,
+    SkyPreset="Default",
+    FollowTarget=false,
+    AntiAFK=false,
+    AutoRejoin=false,
+    ChatSpam=false,
+    ChatSpamMsg="KSR on top",
+    ChatSpamRate=1,
+    ShowInfo=true
+}
+
+local RESTART_POS=Vector3.new(-1238,791,0)
+
+pcall(function()
+    local pg=LocalPlayer:WaitForChild("PlayerGui")
+    for _,name in ipairs({"KSR_Menu","KSR_Info","KSR_Loading"}) do
+        local old=pg:FindFirstChild(name)
+        if old then old:Destroy() end
+    end
+end)
+
+local LoadingGui=Instance.new("ScreenGui")
+LoadingGui.Name="KSR_Loading"
+LoadingGui.ResetOnSpawn=false
+LoadingGui.IgnoreGuiInset=true
+LoadingGui.DisplayOrder=999
+LoadingGui.Parent=LocalPlayer:WaitForChild("PlayerGui")
+
+local LoadBack=Instance.new("Frame")
+LoadBack.Size=UDim2.new(1,0,1,0)
+LoadBack.BackgroundColor3=Color3.fromRGB(0,0,0)
+LoadBack.BackgroundTransparency=0.3
+LoadBack.BorderSizePixel=0
+LoadBack.ZIndex=1
+LoadBack.Parent=LoadingGui
+
+local LoadCard=Instance.new("Frame")
+LoadCard.Size=UDim2.new(0,260,0,130)
+LoadCard.Position=UDim2.new(0.5,-130,0.5,-65)
+LoadCard.BackgroundColor3=BG_MAIN
+LoadCard.BorderSizePixel=0
+LoadCard.ZIndex=2
+LoadCard.Parent=LoadingGui
+Instance.new("UICorner",LoadCard).CornerRadius=UDim.new(0,10)
+
+local LoadStroke=Instance.new("UIStroke")
+LoadStroke.Color=ACCENT
+LoadStroke.Thickness=1
+LoadStroke.Parent=LoadCard
+
+local LoadTitle=Instance.new("TextLabel")
+LoadTitle.Size=UDim2.new(1,0,0,44)
+LoadTitle.Position=UDim2.new(0,0,0,22)
+LoadTitle.BackgroundTransparency=1
+LoadTitle.Text="KSR"
+LoadTitle.TextColor3=ACCENT
+LoadTitle.Font=Enum.Font.GothamBold
+LoadTitle.TextSize=34
+LoadTitle.ZIndex=3
+LoadTitle.Parent=LoadCard
+
+local LoadSub=Instance.new("TextLabel")
+LoadSub.Size=UDim2.new(1,0,0,14)
+LoadSub.Position=UDim2.new(0,0,0,66)
+LoadSub.BackgroundTransparency=1
+LoadSub.Text="loading..."
+LoadSub.TextColor3=TXT_DIM
+LoadSub.Font=Enum.Font.Gotham
+LoadSub.TextSize=11
+LoadSub.ZIndex=3
+LoadSub.Parent=LoadCard
+
+local LoadBarBg=Instance.new("Frame")
+LoadBarBg.Size=UDim2.new(1,-48,0,4)
+LoadBarBg.Position=UDim2.new(0,24,0,96)
+LoadBarBg.BackgroundColor3=BG_ROW
+LoadBarBg.BorderSizePixel=0
+LoadBarBg.ZIndex=3
+LoadBarBg.Parent=LoadCard
+Instance.new("UICorner",LoadBarBg).CornerRadius=UDim.new(1,0)
+
+local LoadBarFill=Instance.new("Frame")
+LoadBarFill.Size=UDim2.new(0,0,1,0)
+LoadBarFill.BackgroundColor3=ACCENT
+LoadBarFill.BorderSizePixel=0
+LoadBarFill.ZIndex=4
+LoadBarFill.Parent=LoadBarBg
+Instance.new("UICorner",LoadBarFill).CornerRadius=UDim.new(1,0)
+
+task.spawn(function()
+    while LoadTitle.Parent do
+        TweenService:Create(LoadTitle,TweenInfo.new(0.65),{TextTransparency=0.35}):Play()
+        task.wait(0.65)
+        TweenService:Create(LoadTitle,TweenInfo.new(0.65),{TextTransparency=0}):Play()
+        task.wait(0.65)
+    end
+end)
+
+TweenService:Create(
+    LoadBarFill,
+    TweenInfo.new(1.6,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),
+    {Size=UDim2.new(1,0,1,0)}
+):Play()
+
+local ScreenGui=Instance.new("ScreenGui")
+ScreenGui.Name="KSR_Menu"
+ScreenGui.ResetOnSpawn=false
+ScreenGui.Parent=LocalPlayer:WaitForChild("PlayerGui")
+
+local Main=Instance.new("Frame")
+Main.Size=UDim2.new(0,490,0,360)
+Main.Position=UDim2.new(0.5,-245,0.5,-180)
+Main.BackgroundColor3=BG_MAIN
+Main.BorderSizePixel=0
+Main.Active=true
+Main.ClipsDescendants=false
+Main.Visible=false
+Main.Parent=ScreenGui
+Instance.new("UICorner",Main).CornerRadius=UDim.new(0,8)
+
+local MainStroke=Instance.new("UIStroke")
+MainStroke.Color=ACCENT_DIM
+MainStroke.Thickness=1
+MainStroke.Parent=Main
+
+local TitleBar=Instance.new("Frame")
+TitleBar.Size=UDim2.new(1,0,0,32)
+TitleBar.BackgroundColor3=BG_PANEL
+TitleBar.BorderSizePixel=0
+TitleBar.Parent=Main
+Instance.new("UICorner",TitleBar).CornerRadius=UDim.new(0,8)
+
+local TitleMask=Instance.new("Frame")
+TitleMask.Size=UDim2.new(1,0,0,8)
+TitleMask.Position=UDim2.new(0,0,1,-8)
+TitleMask.BackgroundColor3=BG_PANEL
+TitleMask.BorderSizePixel=0
+TitleMask.Parent=TitleBar
+
+local TitleDot=Instance.new("Frame")
+TitleDot.Size=UDim2.new(0,6,0,6)
+TitleDot.Position=UDim2.new(0,12,0.5,-3)
+TitleDot.BackgroundColor3=ACCENT
+TitleDot.BorderSizePixel=0
+TitleDot.Parent=TitleBar
+Instance.new("UICorner",TitleDot).CornerRadius=UDim.new(1,0)
+
+local TitleLbl=Instance.new("TextLabel")
+TitleLbl.Size=UDim2.new(1,-110,1,0)
+TitleLbl.Position=UDim2.new(0,24,0,0)
+TitleLbl.BackgroundTransparency=1
+TitleLbl.Text="KSR - Verity"
+TitleLbl.TextColor3=ACCENT
+TitleLbl.TextXAlignment=Enum.TextXAlignment.Left
+TitleLbl.Font=Enum.Font.GothamBold
+TitleLbl.TextSize=13
+TitleLbl.Parent=TitleBar
+
+local VerLbl=Instance.new("TextLabel")
+VerLbl.Size=UDim2.new(0,40,1,0)
+VerLbl.Position=UDim2.new(1,-68,0,0)
+VerLbl.BackgroundTransparency=1
+VerLbl.Text="enjoy papi"
+VerLbl.TextColor3=TXT_DIM
+VerLbl.TextXAlignment=Enum.TextXAlignment.Right
+VerLbl.Font=Enum.Font.GothamMedium
+VerLbl.TextSize=10
+VerLbl.Parent=TitleBar
+
+local CloseBtn=Instance.new("TextButton")
+CloseBtn.Size=UDim2.new(0,24,0,24)
+CloseBtn.Position=UDim2.new(1,-28,0,4)
+CloseBtn.BackgroundColor3=BG_BTN
+CloseBtn.Text="X"
+CloseBtn.TextColor3=TXT
+CloseBtn.Font=Enum.Font.GothamBold
+CloseBtn.TextSize=12
+CloseBtn.BorderSizePixel=0
+CloseBtn.Parent=TitleBar
+Instance.new("UICorner",CloseBtn).CornerRadius=UDim.new(0,5)
+
+CloseBtn.MouseEnter:Connect(function()
+    TweenService:Create(CloseBtn,TweenInfo.new(0.12),{
+        BackgroundColor3=Color3.fromRGB(200,60,60),
+        TextColor3=Color3.fromRGB(255,255,255)
+    }):Play()
+end)
+
+CloseBtn.MouseLeave:Connect(function()
+    TweenService:Create(CloseBtn,TweenInfo.new(0.12),{
+        BackgroundColor3=BG_BTN,
+        TextColor3=TXT
+    }):Play()
+end)
+
+local AccentBar=Instance.new("Frame")
+AccentBar.Size=UDim2.new(1,0,0,2)
+AccentBar.Position=UDim2.new(0,0,0,32)
+AccentBar.BackgroundColor3=ACCENT
+AccentBar.BorderSizePixel=0
+AccentBar.Parent=Main
+
+local Sidebar=Instance.new("Frame")
+Sidebar.Size=UDim2.new(0,100,1,-46)
+Sidebar.Position=UDim2.new(0,8,0,40)
+Sidebar.BackgroundColor3=BG_PANEL
+Sidebar.BorderSizePixel=0
+Sidebar.Parent=Main
+Instance.new("UICorner",Sidebar).CornerRadius=UDim.new(0,6)
+
+local SideLayout=Instance.new("UIListLayout")
+SideLayout.Padding=UDim.new(0,4)
+SideLayout.SortOrder=Enum.SortOrder.LayoutOrder
+SideLayout.Parent=Sidebar
+
+local SidePad=Instance.new("UIPadding")
+SidePad.PaddingTop=UDim.new(0,8)
+SidePad.PaddingLeft=UDim.new(0,6)
+SidePad.PaddingRight=UDim.new(0,6)
+SidePad.Parent=Sidebar
+
+local Content=Instance.new("Frame")
+Content.Size=UDim2.new(1,-120,1,-46)
+Content.Position=UDim2.new(0,112,0,40)
+Content.BackgroundColor3=BG_PANEL
+Content.BorderSizePixel=0
+Content.ClipsDescendants=true
+Content.Parent=Main
+Instance.new("UICorner",Content).CornerRadius=UDim.new(0,6)
+
+local InfoPanel=Instance.new("Frame")
+InfoPanel.Name="KSR_Info"
+InfoPanel.Size=UDim2.new(0,200,0,52)
+InfoPanel.Position=UDim2.new(0,12,0,12)
+InfoPanel.BackgroundColor3=BG_MAIN
+InfoPanel.BackgroundTransparency=0.15
+InfoPanel.BorderSizePixel=0
+InfoPanel.Active=true
+InfoPanel.Visible=false
+InfoPanel.Parent=ScreenGui
+Instance.new("UICorner",InfoPanel).CornerRadius=UDim.new(0,8)
+
+local ipStroke=Instance.new("UIStroke")
+ipStroke.Color=ACCENT_DIM
+ipStroke.Thickness=1
+ipStroke.Parent=InfoPanel
+
+local ipDot=Instance.new("Frame")
+ipDot.Size=UDim2.new(0,6,0,6)
+ipDot.Position=UDim2.new(0,10,0,10)
+ipDot.BackgroundColor3=ACCENT
+ipDot.BorderSizePixel=0
+ipDot.Parent=InfoPanel
+Instance.new("UICorner",ipDot).CornerRadius=UDim.new(1,0)
+
+local ipL1=Instance.new("TextLabel")
+ipL1.Size=UDim2.new(1,-26,0,16)
+ipL1.Position=UDim2.new(0,22,0,7)
+ipL1.BackgroundTransparency=1
+ipL1.Text="Ping --  ·  FPS --"
+ipL1.TextColor3=ACCENT
+ipL1.TextXAlignment=Enum.TextXAlignment.Left
+ipL1.Font=Enum.Font.GothamBold
+ipL1.TextSize=11
+ipL1.Parent=InfoPanel
+
+local ipL2=Instance.new("TextLabel")
+ipL2.Size=UDim2.new(1,-18,0,20)
+ipL2.Position=UDim2.new(0,10,0,26)
+ipL2.BackgroundTransparency=1
+ipL2.Text="Players --  ·  --"
+ipL2.TextColor3=TXT_DIM
+ipL2.TextXAlignment=Enum.TextXAlignment.Left
+ipL2.Font=Enum.Font.Gotham
+ipL2.TextSize=10
+ipL2.Parent=InfoPanel
+
+local ipDragging,ipStart,ipStartPos
+InfoPanel.InputBegan:Connect(function(i)
+    if i.UserInputType==Enum.UserInputType.MouseButton1 then
+        ipDragging=true
+        ipStart=i.Position
+        ipStartPos=InfoPanel.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(i)
+    if ipDragging and i.UserInputType==Enum.UserInputType.MouseMovement then
+        local d=i.Position-ipStart
+        InfoPanel.Position=UDim2.new(
+            ipStartPos.X.Scale,
+            ipStartPos.X.Offset+d.X,
+            ipStartPos.Y.Scale,
+            ipStartPos.Y.Offset+d.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(i)
+    if i.UserInputType==Enum.UserInputType.MouseButton1 then
+        ipDragging=false
+    end
+end)
+
+local NotifHolder=Instance.new("Frame")
+NotifHolder.Size=UDim2.new(0,250,1,0)
+NotifHolder.Position=UDim2.new(1,-260,0,8)
+NotifHolder.BackgroundTransparency=1
+NotifHolder.Parent=ScreenGui
+
+local NL=Instance.new("UIListLayout")
+NL.Padding=UDim.new(0,6)
+NL.SortOrder=Enum.SortOrder.LayoutOrder
+NL.Parent=NotifHolder
+
+local notifCount=0
+
+local function notify(title,text)
+    notifCount=notifCount+1
+
+    local n=Instance.new("Frame")
+    n.Size=UDim2.new(1,0,0,46)
+    n.BackgroundColor3=BG_PANEL
+    n.BorderSizePixel=0
+    n.LayoutOrder=notifCount
+    n.Parent=NotifHolder
+    Instance.new("UICorner",n).CornerRadius=UDim.new(0,8)
+
+    local st=Instance.new("UIStroke")
+    st.Color=ACCENT
+    st.Thickness=1
+    st.Parent=n
+
+    local t=Instance.new("TextLabel")
+    t.Size=UDim2.new(1,-16,0,16)
+    t.Position=UDim2.new(0,10,0,5)
+    t.BackgroundTransparency=1
+    t.Text=title
+    t.TextColor3=ACCENT
+    t.TextXAlignment=Enum.TextXAlignment.Left
+    t.Font=Enum.Font.GothamBold
+    t.TextSize=11
+    t.Parent=n
+
+    local c=Instance.new("TextLabel")
+    c.Size=UDim2.new(1,-16,0,20)
+    c.Position=UDim2.new(0,10,0,21)
+    c.BackgroundTransparency=1
+    c.Text=text
+    c.TextColor3=TXT
+    c.TextXAlignment=Enum.TextXAlignment.Left
+    c.Font=Enum.Font.Gotham
+    c.TextSize=10
+    c.TextWrapped=true
+    c.Parent=n
+
+    task.delay(3.5,function()
+        if n and n.Parent then
+            n:Destroy()
+        end
+    end)
+end
+
+local Pages={}
+local Registry={}
+
+local function makePage(name,order)
+    local btn=Instance.new("TextButton")
+    btn.Size=UDim2.new(1,0,0,26)
+    btn.BackgroundColor3=BG_ROW
+    btn.Text=name
+    btn.TextColor3=TXT_DIM
+    btn.Font=Enum.Font.GothamMedium
+    btn.TextSize=11
+    btn.BorderSizePixel=0
+    btn.LayoutOrder=order or 1
+    btn.AutoButtonColor=false
+    btn.Parent=Sidebar
+    Instance.new("UICorner",btn).CornerRadius=UDim.new(0,5)
+
+    local page=Instance.new("ScrollingFrame")
+    page.Size=UDim2.new(1,-14,1,-14)
+    page.Position=UDim2.new(0,7,0,7)
+    page.BackgroundTransparency=1
+    page.BorderSizePixel=0
+    page.ScrollBarThickness=3
+    page.ScrollBarImageColor3=ACCENT
+    page.CanvasSize=UDim2.new(0,0,0,0)
+    page.AutomaticCanvasSize=Enum.AutomaticSize.Y
+    page.Visible=false
+    page.Parent=Content
+
+    local L=Instance.new("UIListLayout")
+    L.Padding=UDim.new(0,5)
+    L.Parent=page
+
+    local P=Instance.new("UIPadding")
+    P.PaddingRight=UDim.new(0,6)
+    P.PaddingBottom=UDim.new(0,8)
+    P.Parent=page
+
+    Pages[name]={btn=btn,page=page}
+
+    btn.MouseButton1Click:Connect(function()
+        for _,p in pairs(Pages) do
+            p.page.Visible=false
+            TweenService:Create(p.btn,TweenInfo.new(0.12),{
+                BackgroundColor3=BG_ROW,
+                TextColor3=TXT_DIM
+            }):Play()
+        end
+
+        page.Visible=true
+
+        TweenService:Create(btn,TweenInfo.new(0.12),{
+            BackgroundColor3=ACCENT,
+            TextColor3=BG_MAIN
+        }):Play()
+    end)
+
+    btn.MouseEnter:Connect(function()
+        if Pages[name] and Pages[name].page.Visible then return end
+        TweenService:Create(btn,TweenInfo.new(0.12),{
+            BackgroundColor3=BG_ROW_HOV
+        }):Play()
+    end)
+
+    btn.MouseLeave:Connect(function()
+        if Pages[name] and Pages[name].page.Visible then return end
+        TweenService:Create(btn,TweenInfo.new(0.12),{
+            BackgroundColor3=BG_ROW
+        }):Play()
+    end)
+
+    return page
+end
+
+local function activatePage(name)
+    for _,p in pairs(Pages) do
+        p.page.Visible=false
+        TweenService:Create(p.btn,TweenInfo.new(0.12),{
+            BackgroundColor3=BG_ROW,
+            TextColor3=TXT_DIM
+        }):Play()
+    end
+
+    Pages[name].page.Visible=true
+
+    TweenService:Create(Pages[name].btn,TweenInfo.new(0.12),{
+        BackgroundColor3=ACCENT,
+        TextColor3=BG_MAIN
+    }):Play()
+end
+
+local function makeToggle(parent,key,label,default,cb)
+    local row=Instance.new("Frame")
+    row.Size=UDim2.new(1,0,0,30)
+    row.BackgroundColor3=BG_ROW
+    row.BorderSizePixel=0
+    row.Parent=parent
+    Instance.new("UICorner",row).CornerRadius=UDim.new(0,5)
+
+    local lbl=Instance.new("TextLabel")
+    lbl.Size=UDim2.new(1,-60,1,0)
+    lbl.Position=UDim2.new(0,10,0,0)
+    lbl.BackgroundTransparency=1
+    lbl.Text=label
+    lbl.TextColor3=TXT
+    lbl.TextXAlignment=Enum.TextXAlignment.Left
+    lbl.Font=Enum.Font.Gotham
+    lbl.TextSize=11
+    lbl.Parent=row
+
+    local btn=Instance.new("TextButton")
+    btn.Size=UDim2.new(0,36,0,18)
+    btn.Position=UDim2.new(1,-46,0.5,-9)
+    btn.Text=""
+    btn.BorderSizePixel=0
+    btn.AutoButtonColor=false
+    btn.Parent=row
+    Instance.new("UICorner",btn).CornerRadius=UDim.new(1,0)
+
+    local knob=Instance.new("Frame")
+    knob.Size=UDim2.new(0,14,0,14)
+    knob.BorderSizePixel=0
+    knob.Parent=btn
+    Instance.new("UICorner",knob).CornerRadius=UDim.new(1,0)
+
+    local state=default
+
+    local function render(animate)
+        local on=state
+
+        local target={
+            BackgroundColor3=on and ACCENT or BG_BTN
+        }
+
+        local knobTarget={
+            Position=on and UDim2.new(1,-16,0.5,-7) or UDim2.new(0,2,0.5,-7),
+            BackgroundColor3=on and BG_MAIN or Color3.fromRGB(210,210,210)
+        }
+
+        if animate then
+            TweenService:Create(btn,TweenInfo.new(0.14),target):Play()
+            TweenService:Create(knob,TweenInfo.new(0.14),knobTarget):Play()
+        else
+            btn.BackgroundColor3=target.BackgroundColor3
+            knob.Position=knobTarget.Position
+            knob.BackgroundColor3=knobTarget.BackgroundColor3
+        end
+    end
+
+    render(false)
+
+    local function set(v,skipAnim)
+        state=v
+        render(not skipAnim)
+        if cb then cb(v) end
+    end
+
+    btn.MouseButton1Click:Connect(function()
+        set(not state)
+    end)
+
+    local api={
+        set=function(v) set(v,true) end,
+        get=function() return state end
+    }
+
+    if key then Registry[key]=api end
+
+    return api
+end
+
+local function makeSlider(parent,key,label,min,max,default,decimals,cb)
+    local row=Instance.new("Frame")
+    row.Size=UDim2.new(1,0,0,40)
+    row.BackgroundColor3=BG_ROW
+    row.BorderSizePixel=0
+    row.Parent=parent
+    Instance.new("UICorner",row).CornerRadius=UDim.new(0,5)
+
+    local lbl=Instance.new("TextLabel")
+    lbl.Size=UDim2.new(1,-70,0,16)
+    lbl.Position=UDim2.new(0,10,0,5)
+    lbl.BackgroundTransparency=1
+    lbl.Text=label
+    lbl.TextColor3=TXT
+    lbl.TextXAlignment=Enum.TextXAlignment.Left
+    lbl.Font=Enum.Font.Gotham
+    lbl.TextSize=11
+    lbl.Parent=row
+
+    local valLbl=Instance.new("TextLabel")
+    valLbl.Size=UDim2.new(0,60,0,16)
+    valLbl.Position=UDim2.new(1,-70,0,5)
+    valLbl.BackgroundTransparency=1
+    valLbl.TextColor3=ACCENT
+    valLbl.TextXAlignment=Enum.TextXAlignment.Right
+    valLbl.Font=Enum.Font.GothamBold
+    valLbl.TextSize=11
+    valLbl.Parent=row
+
+    local bar=Instance.new("Frame")
+    bar.Size=UDim2.new(1,-20,0,5)
+    bar.Position=UDim2.new(0,10,0,28)
+    bar.BackgroundColor3=BG_BTN
+    bar.BorderSizePixel=0
+    bar.Parent=row
+    Instance.new("UICorner",bar).CornerRadius=UDim.new(1,0)
+
+    local fill=Instance.new("Frame")
+    fill.Size=UDim2.new(0,0,1,0)
+    fill.BackgroundColor3=ACCENT
+    fill.BorderSizePixel=0
+    fill.Parent=bar
+    Instance.new("UICorner",fill).CornerRadius=UDim.new(1,0)
+
+    local thumb=Instance.new("Frame")
+    thumb.Size=UDim2.new(0,11,0,11)
+    thumb.BackgroundColor3=ACCENT
+    thumb.BorderSizePixel=0
+    thumb.Parent=bar
+    Instance.new("UICorner",thumb).CornerRadius=UDim.new(1,0)
+
+    local thumbStroke=Instance.new("UIStroke")
+    thumbStroke.Color=BG_MAIN
+    thumbStroke.Thickness=1
+    thumbStroke.Parent=thumb
+
+    local mult=10^decimals
+    local value=default
+
+    local function fmt(v)
+        if decimals==0 then
+            return tostring(math.floor(v))
+        end
+        return string.format("%."..decimals.."f",v)
+    end
+
+    local function render()
+        local pct=(value-min)/(max-min)
+        fill.Size=UDim2.new(pct,0,1,0)
+        thumb.Position=UDim2.new(pct,-5.5,0.5,-5.5)
+        valLbl.Text=fmt(value)
+    end
+
+    local dragging=false
+
+    local function updateFromX(x)
+        local rel=math.clamp(
+            (x-bar.AbsolutePosition.X)/bar.AbsoluteSize.X,
+            0,
+            1
+        )
+
+        value=math.floor(
+            (min+(max-min)*rel)*mult+0.5
+        )/mult
+
+        render()
+
+        if cb then cb(value) end
+    end
+
+    bar.InputBegan:Connect(function(i)
+        if i.UserInputType==Enum.UserInputType.MouseButton1 then
+            dragging=true
+            updateFromX(i.Position.X)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(i)
+        if dragging and i.UserInputType==Enum.UserInputType.MouseMovement then
+            updateFromX(i.Position.X)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType==Enum.UserInputType.MouseButton1 then
+            dragging=false
+        end
+    end)
+
+    render()
+
+    local function set(v)
+        value=math.clamp(v,min,max)
+        render()
+        if cb then cb(value) end
+    end
+
+    local api={
+        set=set,
+        get=function() return value end
+    }
+
+    if key then Registry[key]=api end
+
+    return api
+end
+
+local function makeButton(parent,label,cb)
+    local btn=Instance.new("TextButton")
+    btn.Size=UDim2.new(1,0,0,28)
+    btn.BackgroundColor3=ACCENT
+    btn.Text=label
+    btn.TextColor3=BG_MAIN
+    btn.Font=Enum.Font.GothamBold
+    btn.TextSize=11
+    btn.BorderSizePixel=0
+    btn.AutoButtonColor=false
+    btn.Parent=parent
+    Instance.new("UICorner",btn).CornerRadius=UDim.new(0,5)
+
+    btn.MouseButton1Click:Connect(function()
+        if cb then cb() end
+    end)
+
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn,TweenInfo.new(0.12),{
+            BackgroundColor3=ACCENT_HOV
+        }):Play()
+    end)
+
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn,TweenInfo.new(0.12),{
+            BackgroundColor3=ACCENT
+        }):Play()
+    end)
+
+    return btn
+end
+
+local function makeInfo(parent,text)
+    local lbl=Instance.new("TextLabel")
+    lbl.Size=UDim2.new(1,0,0,26)
+    lbl.BackgroundColor3=BG_ROW
+    lbl.Text=text
+    lbl.TextColor3=ACCENT
+    lbl.Font=Enum.Font.Gotham
+    lbl.TextSize=10
+    lbl.TextWrapped=true
+    lbl.BorderSizePixel=0
+    lbl.Parent=parent
+    Instance.new("UICorner",lbl).CornerRadius=UDim.new(0,5)
+    return lbl
+end
+
+local function makeDropdown(parent,label,getOptions,onSelect)
+    local row=Instance.new("Frame")
+    row.Size=UDim2.new(1,0,0,30)
+    row.BackgroundColor3=BG_ROW
+    row.BorderSizePixel=0
+    row.Parent=parent
+    Instance.new("UICorner",row).CornerRadius=UDim.new(0,5)
+
+    local lbl=Instance.new("TextLabel")
+    lbl.Size=UDim2.new(0,50,1,0)
+    lbl.Position=UDim2.new(0,10,0,0)
+    lbl.BackgroundTransparency=1
+    lbl.Text=label
+    lbl.TextColor3=TXT
+    lbl.TextXAlignment=Enum.TextXAlignment.Left
+    lbl.Font=Enum.Font.Gotham
+    lbl.TextSize=11
+    lbl.Parent=row
+
+    local btn=Instance.new("TextButton")
+    btn.Size=UDim2.new(1,-70,0,22)
+    btn.Position=UDim2.new(0,62,0.5,-11)
+    btn.BackgroundColor3=BG_BTN
+    btn.Text="▾  None"
+    btn.TextColor3=TXT
+    btn.Font=Enum.Font.GothamMedium
+    btn.TextSize=11
+    btn.BorderSizePixel=0
+    btn.AutoButtonColor=false
+    btn.Parent=row
+    Instance.new("UICorner",btn).CornerRadius=UDim.new(0,5)
+
+    local popup=nil
+
+    local function closePopup()
+        if popup then
+            popup:Destroy()
+            popup=nil
+        end
+    end
+
+    local function openPopup()
+        closePopup()
+
+        local options=getOptions()
+
+        if #options==0 then
+            notify("Players","No other players in server.")
+            return
+        end
+
+        local rowH=24
+        local popupH=math.min(#options*rowH+10,200)
+
+        local p=Instance.new("ScrollingFrame")
+        p.BackgroundColor3=BG_PANEL
+        p.BorderSizePixel=0
+        p.ScrollBarThickness=3
+        p.ScrollBarImageColor3=ACCENT
+        p.CanvasSize=UDim2.new(0,0,0,#options*rowH+10)
+        p.ZIndex=100
+        p.Size=UDim2.new(0,btn.AbsoluteSize.X,0,popupH)
+
+        local bx=btn.AbsolutePosition.X-Main.AbsolutePosition.X
+        local by=btn.AbsolutePosition.Y-Main.AbsolutePosition.Y+btn.AbsoluteSize.Y+2
+
+        if by+popupH>Main.AbsoluteSize.Y-8 then
+            by=btn.AbsolutePosition.Y-Main.AbsolutePosition.Y-popupH-2
+        end
+
+        p.Position=UDim2.new(0,bx,0,by)
+        p.Parent=Main
+
+        Instance.new("UICorner",p).CornerRadius=UDim.new(0,6)
+
+        local st=Instance.new("UIStroke")
+        st.Color=ACCENT
+        st.Thickness=1
+        st.Parent=p
+
+        local L=Instance.new("UIListLayout")
+        L.Padding=UDim.new(0,2)
+        L.Parent=p
+
+        local pad=Instance.new("UIPadding")
+        pad.PaddingTop=UDim.new(0,4)
+        pad.PaddingLeft=UDim.new(0,4)
+        pad.PaddingRight=UDim.new(0,4)
+        pad.Parent=p
+
+        for i,opt in ipairs(options) do
+            local ob=Instance.new("TextButton")
+            ob.Size=UDim2.new(1,-8,0,rowH-2)
+            ob.BackgroundColor3=BG_ROW
+            ob.Text="  "..tostring(opt.Name)
+            ob.TextColor3=TXT
+            ob.TextXAlignment=Enum.TextXAlignment.Left
+            ob.Font=Enum.Font.Gotham
+            ob.TextSize=11
+            ob.BorderSizePixel=0
+            ob.LayoutOrder=i
+            ob.ZIndex=101
+            ob.AutoButtonColor=false
+            ob.Parent=p
+            Instance.new("UICorner",ob).CornerRadius=UDim.new(0,4)
+
+            ob.MouseEnter:Connect(function()
+                TweenService:Create(ob,TweenInfo.new(0.1),{
+                    BackgroundColor3=BG_ROW_HOV
+                }):Play()
+            end)
+
+            ob.MouseLeave:Connect(function()
+                TweenService:Create(ob,TweenInfo.new(0.1),{
+                    BackgroundColor3=BG_ROW
+                }):Play()
+            end)
+
+            ob.MouseButton1Click:Connect(function()
+                onSelect(opt)
+                btn.Text="▾  "..tostring(opt.Name)
+                closePopup()
+            end)
+        end
+
+        popup=p
+    end
+
+    btn.MouseButton1Click:Connect(function()
+        if popup then
+            closePopup()
+        else
+            openPopup()
+        end
+    end)
+
+    for _,pg in pairs(Pages) do
+        pg.btn.MouseButton1Click:Connect(closePopup)
+    end
+
+    return {
+        setText=function(t) btn.Text="▾  "..t end,
+        close=closePopup
+    }
+end
+
+local FarmPage=makePage("Autofarm",1)
+local CombatPage=makePage("Combat",2)
+local VisualPage=makePage("Visuals",3)
+local PlayerPage=makePage("Players",4)
+local UtilityPage=makePage("Utility",5)
+local MiscPage=makePage("Misc",6)
+
+activatePage("Autofarm")
+
+local StatusLbl=makeInfo(FarmPage,"Idle.")
+
+local function setStatus(t)
+    pcall(function()
+        StatusLbl.Text=t
+    end)
+end
+
+local ToggleRef=makeToggle(FarmPage,"TPAllStages","Teleport to all stages",false,function(v)
+    Config.TPAllStages=v
+
+    if v then
+        notify("Autofarm","Starting stage teleport loop.")
+        task.spawn(runLoop)
+    end
+end)
+
+makeButton(FarmPage,"Refresh stages",function()
+    scan()
+end)
+
+makeButton(FarmPage,"Stop",function()
+    Config.TPAllStages=false
+    ToggleRef.set(false)
+    setStatus("Stopped.")
+    notify("Autofarm","Stopped.")
+end)
+
+makeSlider(FarmPage,"StartStage","Start stage",1,41,1,0,function(v)
+    Config.StartStage=v
+end)
+
+makeSlider(FarmPage,"EndStage","End stage",1,41,41,0,function(v)
+    Config.EndStage=v
+end)
+
+makeSlider(FarmPage,"Delay","Delay",0,5,0.20,2,function(v)
+    Config.Delay=v
+end)
+
+makeToggle(FarmPage,"LoopMode","Loop",false,function(v)
+    Config.LoopMode=v
+end)
+
+makeToggle(FarmPage,"RestartTP","Teleport to restart pos after final stage",true,function(v)
+    Config.RestartTP=v
+end)
+
+makeInfo(FarmPage,"Restart pos: (-1238, 791, 0)  ·  10s wait")
+
+makeToggle(CombatPage,"AutoClick","Auto-Clicker (tool swing)",false,function(v)
+    Config.AutoClick=v
+end)
+
+makeSlider(CombatPage,"AutoClickCPS","Clicker CPS",1,60,10,0,function(v)
+    Config.AutoClickCPS=v
+end)
+
+local frozenByUs=false
+
+makeToggle(CombatPage,"Freeze","Freeze / Anchor Self",false,function(v)
+    Config.Freeze=v
+
+    if not v and frozenByUs then
+        local c=LocalPlayer.Character
+        local h=c and c:FindFirstChild("HumanoidRootPart")
+
+        if h then
+            h.Anchored=false
+        end
+
+        frozenByUs=false
+    end
+end)
+
+spawn(function()
+    while true do
+        RunService.Heartbeat:Wait()
+
+        if Config.Freeze then
+            local char=LocalPlayer.Character
+            local hrp=char and char:FindFirstChild("HumanoidRootPart")
+
+            if hrp and not hrp.Anchored then
+                hrp.Anchored=true
+                frozenByUs=true
+            end
+        elseif frozenByUs then
+            local char=LocalPlayer.Character
+            local hrp=char and char:FindFirstChild("HumanoidRootPart")
+
+            if hrp then
+                hrp.Anchored=false
+            end
+
+            frozenByUs=false
+        end
+    end
+end)
+
+makeToggle(CombatPage,"AntiFling","Anti-Fling",false,function(v)
+    Config.AntiFling=v
+end)
+
+makeToggle(VisualPage,"ESP","ESP (name + distance)",false,function(v)
+    Config.ESP=v
+
+    if not v then
+        for _,p in ipairs(Players:GetPlayers()) do
+            local esp=ESPCache[p]
+
+            if esp and esp.bb then
+                esp.bb:Destroy()
+                esp.bb=nil
+            end
+        end
+    end
+end)
+
+makeToggle(VisualPage,"Chams","Chams (highlight through walls)",false,function(v)
+    Config.Chams=v
+
+    if not v then
+        for _,p in ipairs(Players:GetPlayers()) do
+            local esp=ESPCache[p]
+
+            if esp and esp.highlight then
+                esp.highlight:Destroy()
+                esp.highlight=nil
+            end
+        end
+    end
+end)
+
+makeToggle(VisualPage,"Tracers","Tracers",false,function(v)
+    Config.Tracers=v
+end)
+
+local savedFOV=nil
+local fovConn=nil
+local applyingFOV=false
+
+local function applyFOV()
+    local cam=workspace.CurrentCamera
+
+    if not cam then return end
+
+    if cam.FieldOfView~=Config.FOV then
+        applyingFOV=true
+        cam.FieldOfView=Config.FOV
+        applyingFOV=false
+    end
+end
+
+local function startFOV()
+    local cam=workspace.CurrentCamera
+
+    if not cam then return end
+
+    applyFOV()
+
+    if fovConn then
+        fovConn:Disconnect()
+    end
+
+    fovConn=cam:GetPropertyChangedSignal("FieldOfView"):Connect(function()
+        if applyingFOV then return end
+        if not Config.FOVEnabled then return end
+
+        if cam.FieldOfView~=Config.FOV then
+            applyFOV()
+        end
+    end)
+end
+
+local function stopFOV()
+    if fovConn then
+        fovConn:Disconnect()
+        fovConn=nil
+    end
+end
+
+makeToggle(VisualPage,"FOVEnabled","FOV Changer",false,function(v)
+    Config.FOVEnabled=v
+
+    if v then
+        savedFOV=workspace.CurrentCamera.FieldOfView
+        startFOV()
+    else
+        stopFOV()
+
+        if savedFOV then
+            applyingFOV=true
+            workspace.CurrentCamera.FieldOfView=savedFOV
+            applyingFOV=false
+            savedFOV=nil
+        end
+    end
+end)
+
+makeSlider(VisualPage,"FOV","FOV Value",40,160,70,0,function(v)
+    Config.FOV=v
+
+    if Config.FOVEnabled then
+        applyFOV()
+    end
+end)
+
+local SKY_PRESETS={"Default","Night","Sunset","Space","Doomsday"}
+local skyBtn
+
+local function applySky(preset)
+    Config.SkyPreset=preset
+
+    if preset=="Default" then
+        Lighting.Brightness=2
+        Lighting.ClockTime=14
+        Lighting.Ambient=Color3.fromRGB(70,70,70)
+        Lighting.OutdoorAmbient=Color3.fromRGB(70,70,70)
+        Lighting.FogEnd=100000
+    elseif preset=="Night" then
+        Lighting.Brightness=0.5
+        Lighting.ClockTime=0
+        Lighting.Ambient=Color3.fromRGB(20,20,40)
+        Lighting.OutdoorAmbient=Color3.fromRGB(15,15,30)
+    elseif preset=="Sunset" then
+        Lighting.Brightness=1.5
+        Lighting.ClockTime=18
+        Lighting.Ambient=Color3.fromRGB(120,70,40)
+        Lighting.OutdoorAmbient=Color3.fromRGB(180,100,60)
+    elseif preset=="Space" then
+        Lighting.Brightness=0
+        Lighting.ClockTime=0
+        Lighting.Ambient=Color3.fromRGB(0,0,0)
+        Lighting.OutdoorAmbient=Color3.fromRGB(0,0,0)
+    elseif preset=="Doomsday" then
+        Lighting.Brightness=1
+        Lighting.ClockTime=12
+        Lighting.Ambient=Color3.fromRGB(120,20,20)
+        Lighting.OutdoorAmbient=Color3.fromRGB(150,30,30)
+        Lighting.FogEnd=300
+        Lighting.FogColor=Color3.fromRGB(80,0,0)
+    end
+
+    if skyBtn then
+        skyBtn.Text="Sky Preset: "..preset
+    end
+end
+
+skyBtn=makeButton(VisualPage,"Sky Preset: Default",function()
+    local idx=1
+
+    for i,n in ipairs(SKY_PRESETS) do
+        if n==Config.SkyPreset then
+            idx=i
+        end
+    end
+
+    idx=(idx%#SKY_PRESETS)+1
+    applySky(SKY_PRESETS[idx])
+end)
+
+local targetPlayer=nil
+
+makeDropdown(PlayerPage,"Target",function()
+    local opts={}
+
+    for _,p in ipairs(Players:GetPlayers()) do
+        if p~=LocalPlayer then
+            table.insert(opts,{
+                Name=p.Name,
+                Player=p
+            })
+        end
+    end
+
+    return opts
+end,function(opt)
+    targetPlayer=opt.Player
+    notify("Players","Target: "..opt.Name)
+end)
+
+makeButton(PlayerPage,"Teleport to target",function()
+    if not targetPlayer or not targetPlayer.Character then
+        notify("Players","No target selected.")
+        return
+    end
+
+    local hrp=targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local myChar=LocalPlayer.Character
+    local myHrp=myChar and myChar:FindFirstChild("HumanoidRootPart")
+
+    if hrp and myHrp then
+        myHrp.CFrame=hrp.CFrame+Vector3.new(0,3,0)
+        notify("Players","Teleported to "..targetPlayer.Name)
+    end
+end)
+
+makeButton(PlayerPage,"Spectate target",function()
+    if not targetPlayer or not targetPlayer.Character then
+        notify("Players","No target selected.")
+        return
+    end
+
+    local hum=targetPlayer.Character:FindFirstChildOfClass("Humanoid")
+
+    if hum then
+        workspace.CurrentCamera.CameraSubject=hum
+        notify("Players","Spectating "..targetPlayer.Name)
+    end
+end)
+
+makeButton(PlayerPage,"Stop spectate",function()
+    local c=LocalPlayer.Character
+    local hum=c and c:FindFirstChildOfClass("Humanoid")
+
+    if hum then
+        workspace.CurrentCamera.CameraSubject=hum
+    end
+end)
+
+makeToggle(PlayerPage,"FollowTarget","Follow target",false,function(v)
+    Config.FollowTarget=v
+end)
+
+makeToggle(UtilityPage,"AntiAFK","Anti-AFK",false,function(v)
+    Config.AntiAFK=v
+end)
+
+makeToggle(UtilityPage,"AutoRejoin","Auto-Rejoin on Kick",false,function(v)
+    Config.AutoRejoin=v
+end)
+
+makeToggle(UtilityPage,"ShowInfo","Show Info Panel",true,function(v)
+    Config.ShowInfo=v
+    InfoPanel.Visible=v
+end)
+
+makeButton(UtilityPage,"Server Hop",function()
+    local ok=pcall(function()
+        local url="https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+        local res=HttpService:JSONDecode(game:HttpGet(url))
+
+        for _,s in ipairs(res.data) do
+            if s.id~=game.JobId and s.playing<s.maxPlayers then
+                TeleportService:TeleportToPlaceInstance(
+                    game.PlaceId,
+                    s.id,
+                    LocalPlayer
+                )
+
+                notify("Utility","Hopping to new server...")
+                return
+            end
+        end
+
+        notify("Utility","No available servers.")
+    end)
+
+    if not ok then
+        notify("Utility","Server hop failed.")
+    end
+end)
+
+makeToggle(UtilityPage,"ChatSpam","Chat spam",false,function(v)
+    Config.ChatSpam=v
+end)
+
+makeSlider(UtilityPage,"ChatSpamRate","Chat rate (s)",0.5,10,1,1,function(v)
+    Config.ChatSpamRate=v
+end)
+
+makeButton(UtilityPage,"Save config",function()
+    local ok=pcall(function()
+        if writefile then
+            writefile("KSR_Config.json",HttpService:JSONEncode(Config))
+            notify("Config","Saved.")
+        else
+            notify("Config","writefile unavailable.")
+        end
+    end)
+
+    if not ok then
+        notify("Config","Save failed.")
+    end
+end)
+
+makeButton(UtilityPage,"Load config",function()
+    local ok=pcall(function()
+        if readfile and isfile and isfile("KSR_Config.json") then
+            local data=HttpService:JSONDecode(readfile("KSR_Config.json"))
+
+            for k,v in pairs(data) do
+                Config[k]=v
+
+                if Registry[k] then
+                    pcall(function()
+                        Registry[k].set(v)
+                    end)
+                end
+            end
+
+            notify("Config","Loaded.")
+        else
+            notify("Config","No config found.")
+        end
+    end)
+
+    if not ok then
+        notify("Config","Load failed.")
+    end
+end)
+
+makeSlider(MiscPage,"WalkSpeed","WalkSpeed",16,500,16,0,function(v)
+    Config.WalkSpeed=v
+
+    local h=LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+
+    if h then
+        h.WalkSpeed=v
+    end
+end)
+
+makeSlider(MiscPage,"JumpPower","JumpPower",50,500,50,0,function(v)
+    Config.JumpPower=v
+
+    local h=LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+
+    if h then
+        h.JumpPower=v
+        h.UseJumpPower=true
+    end
+end)
+
+makeToggle(MiscPage,"InfJump","Infinite Jump",false,function(v)
+    Config.InfJump=v
+end)
+
+local noclipSaved={}
+
+local function applyNoclip()
+    local char=LocalPlayer.Character
+
+    if not char then return end
+
+    for _,p in ipairs(char:GetDescendants()) do
+        if p:IsA("BasePart") then
+            if noclipSaved[p]==nil then
+                noclipSaved[p]=p.CanCollide
+            end
+
+            p.CanCollide=false
+        end
+    end
+end
+
+local function removeNoclip()
+    for p,s in pairs(noclipSaved) do
+        if p and p.Parent then
+            p.CanCollide=s
+        end
+    end
+
+    noclipSaved={}
+end
+
+makeToggle(MiscPage,"Noclip","Noclip",false,function(v)
+    Config.Noclip=v
+
+    if v then
+        applyNoclip()
+    else
+        removeNoclip()
+    end
+end)
+
+RunService.Stepped:Connect(function()
+    if Config.Noclip then
+        local char=LocalPlayer.Character
+
+        if char then
+            for _,p in ipairs(char:GetDescendants()) do
+                if p:IsA("BasePart") and p.CanCollide then
+                    if noclipSaved[p]==nil then
+                        noclipSaved[p]=true
+                    end
+
+                    p.CanCollide=false
+                end
+            end
+        end
+    end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function()
+    noclipSaved={}
+
+    if Config.Noclip then
+        task.wait(0.4)
+        applyNoclip()
+    end
+end)
+
+makeToggle(MiscPage,"Fullbright","Fullbright",false,function(v)
+    Config.Fullbright=v
+
+    if v then
+        Lighting.Brightness=3
+        Lighting.ClockTime=14
+        Lighting.GlobalShadows=false
+        Lighting.OutdoorAmbient=Color3.fromRGB(180,180,180)
+    else
+        Lighting.Brightness=2
+        Lighting.GlobalShadows=true
+        Lighting.OutdoorAmbient=Color3.fromRGB(70,70,70)
+    end
+end)
+
+makeToggle(MiscPage,"NoCooldown","No Cooldown (tools)",false,function(v)
+    Config.NoCooldown=v
+end)
+
+makeButton(MiscPage,"Reset Character",function()
+    local c=LocalPlayer.Character
+
+    if c then
+        c:BreakJoints()
+    end
+end)
+
+makeButton(MiscPage,"Rejoin",function()
+    TeleportService:Teleport(game.PlaceId,LocalPlayer)
+end)
+
+makeInfo(MiscPage,"Keys: H InfJump · N Noclip · B Fullbright")
+
+local dragging,dragStart,startPos
+
+TitleBar.InputBegan:Connect(function(i)
+    if i.UserInputType==Enum.UserInputType.MouseButton1 then
+        dragging=true
+        dragStart=i.Position
+        startPos=Main.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(i)
+    if dragging and i.UserInputType==Enum.UserInputType.MouseMovement then
+        local d=i.Position-dragStart
+
+        Main.Position=UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset+d.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset+d.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(i)
+    if i.UserInputType==Enum.UserInputType.MouseButton1 then
+        dragging=false
+    end
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+UserInputService.InputBegan:Connect(function(i,gpe)
+    if gpe then return end
+
+    if i.KeyCode==Enum.KeyCode.RightShift then
+        Main.Visible=not Main.Visible
+    end
+
+    if i.KeyCode==Enum.KeyCode.H then
+        Config.InfJump=not Config.InfJump
+
+        if Registry["InfJump"] then
+            Registry["InfJump"].set(Config.InfJump)
+        end
+    end
+
+    if i.KeyCode==Enum.KeyCode.N then
+        Config.Noclip=not Config.Noclip
+
+        if Config.Noclip then
+            applyNoclip()
+        else
+            removeNoclip()
+        end
+
+        if Registry["Noclip"] then
+            Registry["Noclip"].set(Config.Noclip)
+        end
+    end
+
+    if i.KeyCode==Enum.KeyCode.B then
+        Config.Fullbright=not Config.Fullbright
+
+        if Config.Fullbright then
+            Lighting.Brightness=3
+            Lighting.ClockTime=14
+            Lighting.GlobalShadows=false
+            Lighting.OutdoorAmbient=Color3.fromRGB(180,180,180)
+        else
+            Lighting.Brightness=2
+            Lighting.GlobalShadows=true
+            Lighting.OutdoorAmbient=Color3.fromRGB(70,70,70)
+        end
+
+        if Registry["Fullbright"] then
+            Registry["Fullbright"].set(Config.Fullbright)
+        end
+    end
+end)
+
+local stages={}
+
+function scan()
+    stages={}
+
+    local seen={}
+
+    local function grab(c)
+        for _,o in ipairs(c:GetDescendants()) do
+            local n=tonumber(o.Name)
+
+            if n and n>=1 and n<=41 and not seen[n] then
+                local p
+
+                if o:IsA("BasePart") then
+                    p=o
+                elseif o:IsA("Model") then
+                    p=o.PrimaryPart or o:FindFirstChildWhichIsA("BasePart",true)
+                end
+
+                if p then
+                    stages[n]=p
+                    seen[n]=true
+                end
+            end
+        end
+    end
+
+    local found={}
+
+    for _,o in ipairs(workspace:GetDescendants()) do
+        local nm=o.Name:lower()
+
+        if (o:IsA("Folder") or o:IsA("Model")) and nm:find("stage") then
+            table.insert(found,o)
+        end
+    end
+
+    if #found>0 then
+        for _,c in ipairs(found) do
+            grab(c)
+        end
+    end
+
+    if #stages<5 then
+        stages={}
+        seen={}
+        grab(workspace)
+    end
+
+    local c=0
+
+    for _ in pairs(stages) do
+        c=c+1
+    end
+
+    setStatus(string.format("Found %d/41 stages.",c))
+end
+
+local running=false
+
+function runLoop()
+    if running then return end
+
+    running=true
+    scan()
+
+    local order={}
+
+    for i=Config.StartStage,Config.EndStage do
+        table.insert(order,i)
+    end
+
+    local total=#order
+
+    while Config.TPAllStages do
+        for idx,n in ipairs(order) do
+            if not Config.TPAllStages then
+                break
+            end
+
+            local part=stages[n]
+            local char=LocalPlayer.Character
+            local hrp=char and char:FindFirstChild("HumanoidRootPart")
+
+            if part and hrp then
+                hrp.CFrame=CFrame.new(
+                    part.Position+Vector3.new(0,5,0)
+                )
+
+                setStatus(string.format(
+                    "Stage %d  (%d/%d)",
+                    n,
+                    idx,
+                    total
+                ))
+
+                if idx==total and Config.RestartTP then
+                    task.wait(math.max(Config.Delay,0.05))
+
+                    local c2=LocalPlayer.Character
+                    local h2=c2 and c2:FindFirstChild("HumanoidRootPart")
+
+                    if h2 then
+                        h2.CFrame=CFrame.new(RESTART_POS)
+                    end
+
+                    for s=Config.RestartWait,1,-1 do
+                        if not Config.TPAllStages then
+                            break
+                        end
+
+                        setStatus(string.format(
+                            "Restart pos — continuing in %ds...",
+                            s
+                        ))
+
+                        task.wait(1)
+                    end
+                end
+            end
+
+            if Config.Delay==0 then
+                RunService.Heartbeat:Wait()
+            else
+                task.wait(Config.Delay)
+            end
+        end
+
+        if not (Config.LoopMode or Config.RestartTP) then
+            break
+        end
+
+        task.wait(0.4)
+    end
+
+    running=false
+    Config.TPAllStages=false
+    ToggleRef.set(false)
+    setStatus("Idle.")
+end
+
+local COOLDOWN_KEYS={
+    "cooldown",
+    "cd",
+    "delay",
+    "recharge",
+    "rate",
+    "wait"
+}
+
+local function matchesCooldown(name)
+    local n=name:lower()
+
+    for _,k in ipairs(COOLDOWN_KEYS) do
+        if n==k or n:find(k) then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function zeroCooldowns(tool)
+    if not tool or not tool:IsA("Tool") then return end
+
+    for _,obj in ipairs(tool:GetDescendants()) do
+        if obj:IsA("NumberValue") or obj:IsA("IntValue") then
+            if matchesCooldown(obj.Name) then
+                obj.Value=0
+            end
+        elseif obj:IsA("StringValue") then
+            if matchesCooldown(obj.Name) then
+                obj.Value="0"
+            end
+        end
+    end
+
+    for _,attr in ipairs(tool:GetAttributes()) do
+        if matchesCooldown(attr) then
+            pcall(function()
+                tool:SetAttribute(attr,0)
+            end)
+        end
+    end
+end
+
+spawn(function()
+    while true do
+        RunService.Heartbeat:Wait()
+
+        if Config.NoCooldown then
+            local char=LocalPlayer.Character
+
+            if char then
+                local eq=char:FindFirstChildWhichIsA("Tool")
+
+                if eq then
+                    eq.Enabled=true
+                    zeroCooldowns(eq)
+                end
+
+                local bp=LocalPlayer:FindFirstChildOfClass("Backpack")
+
+                if bp then
+                    for _,t in ipairs(bp:GetChildren()) do
+                        if t:IsA("Tool") then
+                            zeroCooldowns(t)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+spawn(function()
+    while true do
+        RunService.Heartbeat:Wait()
+
+        if Config.AutoClick then
+            local char=LocalPlayer.Character
+            local tool=char and char:FindFirstChildWhichIsA("Tool")
+
+            if tool then
+                pcall(function()
+                    tool:Activate()
+                end)
+            end
+
+            task.wait(1/math.max(Config.AutoClickCPS,1))
+        end
+    end
+end)
+
+spawn(function()
+    while true do
+        RunService.Heartbeat:Wait()
+
+        if Config.AntiFling then
+            local char=LocalPlayer.Character
+            local hrp=char and char:FindFirstChild("HumanoidRootPart")
+
+            if hrp then
+                local v=hrp.AssemblyLinearVelocity
+
+                if v.Magnitude>500 then
+                    hrp.AssemblyLinearVelocity=Vector3.zero
+                    hrp.AssemblyAngularVelocity=Vector3.zero
+                end
+            end
+        end
+    end
+end)
+
+ESPCache={}
+
+local function cleanupESP(plr)
+    local e=ESPCache[plr]
+
+    if not e then return end
+
+    if e.highlight then
+        e.highlight:Destroy()
+    end
+
+    if e.bb then
+        e.bb:Destroy()
+    end
+
+    ESPCache[plr]=nil
+end
+
+spawn(function()
+    while true do
+        RunService.RenderStepped:Wait()
+
+        if not Config.ESP and not Config.Chams then
+            for plr,_ in pairs(ESPCache) do
+                cleanupESP(plr)
+            end
+        else
+            for _,plr in ipairs(Players:GetPlayers()) do
+                if plr~=LocalPlayer and plr.Character then
+                    local e=ESPCache[plr]
+
+                    if not e then
+                        e={}
+                        ESPCache[plr]=e
+                    end
+
+                    if Config.Chams and not e.highlight then
+                        local hl=Instance.new("Highlight")
+                        hl.FillColor=ACCENT
+                        hl.OutlineColor=Color3.fromRGB(255,255,255)
+                        hl.FillTransparency=0.5
+                        hl.OutlineTransparency=0
+                        hl.Adornee=plr.Character
+                        hl.Parent=ScreenGui
+                        e.highlight=hl
+                    elseif not Config.Chams and e.highlight then
+                        e.highlight:Destroy()
+                        e.highlight=nil
+                    end
+
+                    if Config.ESP and not e.bb then
+                        local bb=Instance.new("BillboardGui")
+                        bb.Size=UDim2.new(0,110,0,26)
+                        bb.StudsOffset=Vector3.new(0,2.5,0)
+                        bb.AlwaysOnTop=true
+                        bb.Parent=ScreenGui
+
+                        local tl=Instance.new("TextLabel")
+                        tl.Size=UDim2.new(1,0,1,0)
+                        tl.BackgroundTransparency=1
+                        tl.TextColor3=ACCENT
+                        tl.TextStrokeTransparency=0
+                        tl.TextStrokeColor3=Color3.fromRGB(0,0,0)
+                        tl.Font=Enum.Font.GothamBold
+                        tl.TextSize=12
+                        tl.Text=plr.Name
+                        tl.Parent=bb
+
+                        e.bb=bb
+                        e.bbText=tl
+                    elseif not Config.ESP and e.bb then
+                        e.bb:Destroy()
+                        e.bb=nil
+                        e.bbText=nil
+                    end
+
+                    if e.highlight then
+                        e.highlight.Adornee=plr.Character
+                    end
+
+                    if e.bb then
+                        local head=plr.Character:FindFirstChild("Head")
+                        local hrp=plr.Character:FindFirstChild("HumanoidRootPart")
+
+                        e.bb.Adornee=head or hrp
+
+                        if e.bbText and hrp then
+                            local dist=math.floor(
+                                (hrp.Position-workspace.CurrentCamera.CFrame.Position).Magnitude
+                            )
+
+                            e.bbText.Text=string.format(
+                                "%s [%d]",
+                                plr.Name,
+                                dist
+                            )
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+local tracers={}
+
+spawn(function()
+    while true do
+        RunService.RenderStepped:Wait()
+
+        if Config.Tracers and Drawing then
+            local cam=workspace.CurrentCamera
+
+            for _,plr in ipairs(Players:GetPlayers()) do
+                if plr~=LocalPlayer and plr.Character then
+                    local hrp=plr.Character:FindFirstChild("HumanoidRootPart")
+
+                    if hrp then
+                        if not tracers[plr] then
+                            local line=Drawing.new("Line")
+                            line.Thickness=1
+                            line.Color=ACCENT
+                            line.Transparency=1
+                            tracers[plr]=line
+                        end
+
+                        local line=tracers[plr]
+                        local pos,on=cam:WorldToViewportPoint(hrp.Position)
+
+                        line.From=Vector2.new(
+                            cam.ViewportSize.X/2,
+                            cam.ViewportSize.Y
+                        )
+
+                        line.To=Vector2.new(pos.X,pos.Y)
+                        line.Visible=on
+                    end
+                end
+            end
+
+            for plr,line in pairs(tracers) do
+                if not plr.Parent or not plr.Character or not Config.Tracers then
+                    line:Remove()
+                    tracers[plr]=nil
+                end
+            end
+        elseif Drawing then
+            for plr,line in pairs(tracers) do
+                line:Remove()
+                tracers[plr]=nil
+            end
+        end
+    end
+end)
+
+spawn(function()
+    while true do
+        RunService.Heartbeat:Wait()
+
+        if Config.FollowTarget and targetPlayer and targetPlayer.Character then
+            local hrp=targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+            local myChar=LocalPlayer.Character
+            local myHrp=myChar and myChar:FindFirstChild("HumanoidRootPart")
+
+            if hrp and myHrp then
+                myHrp.CFrame=hrp.CFrame*CFrame.new(0,3,5)
+            end
+        end
+
+        task.wait(0.3)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(plr)
+    cleanupESP(plr)
+end)
+
+LocalPlayer.Idled:Connect(function()
+    if Config.AntiAFK then
+        pcall(function()
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.new())
+        end)
+    end
+end)
+
+LocalPlayer.AncestryChanged:Connect(function(_,parent)
+    if not parent and Config.AutoRejoin then
+        pcall(function()
+            TeleportService:TeleportToPlaceInstance(
+                game.PlaceId,
+                game.JobId,
+                LocalPlayer
+            )
+        end)
+    end
+end)
+
+spawn(function()
+    while true do
+        RunService.Heartbeat:Wait()
+
+        if Config.ChatSpam then
+            pcall(function()
+                local channels=TextChatService:FindFirstChild("TextChannels")
+                local rb=channels and channels:FindFirstChild("RBXGeneral")
+
+                if rb then
+                    rb:SendAsync(Config.ChatSpamMsg)
+                else
+                    local ev=game:GetService("ReplicatedStorage"):FindFirstChild("DefaultChatSystemChatEvents")
+                    local sm=ev and ev:FindFirstChild("SayMessageRequest")
+
+                    if sm then
+                        sm:FireServer(Config.ChatSpamMsg,"All")
+                    end
+                end
+            end)
+
+            task.wait(Config.ChatSpamRate)
+        end
+    end
+end)
+
+local fps=0
+local frameCount=0
+local lastFpsT=tick()
+
+RunService.RenderStepped:Connect(function()
+    frameCount=frameCount+1
+
+    local now=tick()
+
+    if now-lastFpsT>=1 then
+        fps=frameCount
+        frameCount=0
+        lastFpsT=now
+    end
+end)
+
+spawn(function()
+    while true do
+        task.wait(0.5)
+
+        pcall(function()
+            local ping=math.floor((LocalPlayer:GetNetworkPing() or 0)*1000)
+            local playerCount=#Players:GetPlayers()
+            local serverId=string.sub(game.JobId,1,8)
+
+            ipL1.Text=string.format(
+                "Ping %dms  ·  FPS %d",
+                ping,
+                fps
+            )
+
+            ipL2.Text=string.format(
+                "Players %d  ·  %s",
+                playerCount,
+                serverId
+            )
+        end)
+    end
+end)
+
+UserInputService.JumpRequest:Connect(function()
+    if Config.InfJump then
+        local char=LocalPlayer.Character
+        local h=char and char:FindFirstChildOfClass("Humanoid")
+
+        if h then
+            h:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+local function applyHum(h)
+    h.WalkSpeed=Config.WalkSpeed
+    h.JumpPower=Config.JumpPower
+    h.UseJumpPower=true
+end
+
+if LocalPlayer.Character then
+    local h=LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+
+    if h then
+        applyHum(h)
+    end
+end
+
+LocalPlayer.CharacterAdded:Connect(function(c)
+    local h=c:WaitForChild("Humanoid",5)
+
+    if h then
+        task.wait(0.3)
+        applyHum(h)
+    end
+end)
+
+task.delay(2,function()
+    local fade=TweenInfo.new(
+        0.45,
+        Enum.EasingStyle.Quad,
+        Enum.EasingDirection.Out
+    )
+
+    TweenService:Create(
+        LoadBack,
+        fade,
+        {BackgroundTransparency=1}
+    ):Play()
+
+    TweenService:Create(
+        LoadCard,
+        fade,
+        {BackgroundTransparency=1}
+    ):Play()
+
+    TweenService:Create(
+        LoadStroke,
+        fade,
+        {Transparency=1}
+    ):Play()
+
+    TweenService:Create(
+        LoadTitle,
+        fade,
+        {TextTransparency=1}
+    ):Play()
+
+    TweenService:Create(
+        LoadSub,
+        fade,
+        {TextTransparency=1}
+    ):Play()
+
+    TweenService:Create(
+        LoadBarBg,
+        fade,
+        {BackgroundTransparency=1}
+    ):Play()
+
+    TweenService:Create(
+        LoadBarFill,
+        fade,
+        {BackgroundTransparency=1}
+    ):Play()
+
+    task.wait(0.5)
+
+    LoadingGui:Destroy()
+
+    Main.Visible=true
+    InfoPanel.Visible=Config.ShowInfo
+
+    notify("KSR - Verity ","Loaded.")
+    print("[KSR - Verity ] Loaded.")
+end)
